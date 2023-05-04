@@ -1,3 +1,4 @@
+This repo is clone from using git clone -b pytorch_1.0.0 https://github.com/chengdazhi/Deformable-Convolution-V2-PyTorch.git
 # Deformable-ConvNets-V2 in PyTorch
 
 This repo is an implementation of [Deformable Convolution V2](https://arxiv.org/abs/1811.11168).

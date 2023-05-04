@@ -61,10 +61,11 @@ def metrics():
         # if results and dataset are organized in multiple directory
         for path in paths:
             ref_path = os.path.join(args.ref_root,path,'sharp')
-            res_path = os.path.join(args.res_root,path)
+            #res_path = os.path.join(args.res_root,path)
+            res_path = os.path.join(args.res_root,path,'blur')
             gt_files = sorted(os.listdir(ref_path))
             res_files = sorted(os.listdir(res_path))
-            res_files = [i for i in res_files if i.endswith('fake_S.png')]
+            #res_files = [i for i in res_files if i.endswith('fake_S.png')]
 
             print("total %d images in directory %s"%(len(res_files),res_path))
             gt_files = sorted(gt_files)

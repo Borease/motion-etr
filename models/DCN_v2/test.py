@@ -601,9 +601,7 @@ def example_mdpooling():
 
 
 if __name__ == '__main__':
-    import os
-    # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
-    print(torch.cuda.current_device())
+
     example_dconv()
     example_mdconv()
     example_dpooling()
@@ -623,8 +621,8 @@ if __name__ == '__main__':
         check_mdconv_zero_offset_identify()
 
     check_gradient_conv()
-    # check_gradient_dconv()
-    # check_gradient_mdconv()
+    check_gradient_dconv()
+    check_gradient_mdconv()
     check_gradient_dpooling()
     # """
     # ****** Note: backward is not reentrant error may not be a serious problem,

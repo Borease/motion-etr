@@ -26,8 +26,23 @@ The contents of this repository are as follows:
 ---
 
 ### Prerequisites
+- gcc-7 and g++-7
+- Python 3.6
 - Pytorch 1.1.0 + cuda 10.0
-- You need to first install two repositories, [DCN_v2](https://github.com/chengdazhi/Deformable-Convolution-V2-PyTorch) and [MSSSIM](https://github.com/jorge-pessoa/pytorch-msssim), in the './model' directory, following their installation instructions respectively.
+- scikit-image 0.17.2
+- opencv-python 4.7.0.72
+- ipdb 0.13.13
+- dominate 2.7.0
+- (optional is you need do debug) debugpy 
+
+You also need to install two repositories, [DCN_v2](https://github.com/chengdazhi/Deformable-Convolution-V2-PyTorch) and [MSSSIM](https://github.com/jorge-pessoa/pytorch-msssim). In the './model' directory, you will find pytorch-msssim and DCN_v2. Choose the correct version of DCN_v2 folder and following their installation instructions respectively.
+- Install pyssim and pytorch-msssim
+    - pyssim 0.6 from https://github.com/jterrace/pyssim, install directly using pip install pyssim.
+    - pytorch-msssim 0.1 from https://github.com/jorge-pessoa/pytorch-msssim.
+- Install DCN_v2
+ Install DCN_v2 from ./model/DCN_v2. This is a pytorch_1.0.0 branch of https://github.com/chengdazhi/Deformable-Convolution-V2-PyTorch with modulated_deform_conv.py modified by the author. Before compilation, switch your gcc and g++ into gcc-7 and g++-7. You can ignore the warining during the compilation. At the end, you can see the prompt of successfully installation of the module. <br>
+ I renamed the original ./model/DCN_v2 from the author as ./model/DCN_v2_origin and it will no longer be used.
+
 ### Dataset
 Download [GoPro]((https://seungjunnah.github.io/Datasets/gopro.html)) datasets and algin the blurry/sharp image pairs.
 Organize the dataset in the following form:
