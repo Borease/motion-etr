@@ -6,6 +6,7 @@ results/*
 pretrain_models/*
 *.png
 deblur-evaluation/*
+exp_inputs/*
 
 # ignored folders
 datasets/*
@@ -18,6 +19,7 @@ tmp/*
 *.sh
 .vscode*
 .github
+
 
 # ignored files
 version.py

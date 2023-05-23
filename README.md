@@ -33,6 +33,8 @@ The contents of this repository are as follows:
 - opencv-python 4.7.0.72
 - ipdb 0.13.13
 - dominate 2.7.0
+- tensorboardX
+- (optional for running tensorboard web server) tensorboard
 - (optional is you need do debug) debugpy 
 
 You also need to install two repositories, [DCN_v2](https://github.com/chengdazhi/Deformable-Convolution-V2-PyTorch) and [MSSSIM](https://github.com/jorge-pessoa/pytorch-msssim). In the './model' directory, you will find pytorch-msssim and DCN_v2. Choose the correct version of DCN_v2 folder and following their installation instructions respectively.

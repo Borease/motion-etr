@@ -203,7 +203,21 @@ class MA_Deblur(BaseModel):
 	
 	def draw_quadratic_line(self):
 		# This fuction can visualize the quadratic motion trajectory in a blur kernel form 
-		# as we shown in paper.
+		# as we shown in paper. Specifically, this code does this:
+		'''1. Imports the OpenCV library, which is used for computer vision tasks such as image processing.
+		2. Gets the offset data (presumably calculated by some previous part of the code) from the instance of the class (`self`).
+		3. Gets the input image (`self.real_A`) from the instance of the class and converts it from the BGR to grayscale color space.
+		4. Reshapes the offset data to a 4D tensor and extracts its shape.
+		5. Iterates over the height and width of the input image in increments of `inter` and for each window, does the following:
+		- Gets the center pixel of the window.
+		- Gets the offset data for that pixel.
+		- Applies an order to the offset data (which is not shown in the code snippet provided).
+		- Calculates the indexes of the pixels that correspond to the offset data using the center pixel of the window.
+		- Draws a quadratic line that passes through those pixels using the OpenCV `polylines` function.
+		- Adds the resulting flow map to the `flow_map` variable.
+		6. Returns the final `flow_map` variable.
+
+		The resulting `flow_map` is a 3D NumPy array that contains the image with quadratic motion lines overlaid on it.'''
 		import cv2
 		offset_gpu = self.offsets
 		base_img = self.real_A.cpu().detach().numpy()
@@ -221,7 +235,7 @@ class MA_Deblur(BaseModel):
 		offset	= offset.reshape(self.n_offset,-1,H,W)
 
 		flow_map = np.zeros((H,W,3),dtype='uint8')
-		inter = 17
+		inter = self.opt.offset_grid
 		for i in range(0,H-inter,inter):
 			for j in range(0,W-inter,inter):
 				window = base_img[i:i+inter,j:j+inter]

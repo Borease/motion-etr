@@ -115,8 +115,8 @@ def metrics():
         res_path = os.path.join(args.res_root)
         gt_files = os.listdir(ref_path)
         res_files = os.listdir(res_path)
-        gt_files = [i for i in gt_files if i.endswith('real_S.png')]
-        res_files = [i for i in res_files if i.endswith('fake_S.png')]
+        gt_files = [i for i in gt_files if i.endswith('_Blurry.png')]
+        res_files = [i for i in res_files if i.endswith('_Reblur.png')]
 
         print("total %d images in directory %s"%(len(res_files),res_path))
         gt_files = sorted(gt_files)

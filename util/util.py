@@ -20,6 +20,11 @@ def tensor2im(image_tensor, imtype=np.uint8):
 	# image_numpy = resize(image_numpy,(image_numpy.shape[0]*2,image_numpy.shape[1]*2),anti_aliasing=False)
 	return image_numpy.astype(imtype)
 
+def tensor2im_raw(image_tensor):
+	image_numpy = image_tensor[0].cpu().float().numpy()
+	image_numpy = np.transpose(image_numpy, (1, 2, 0))
+	return image_numpy
+
 def load_image(filename, trans_list=None, size=None, scale=None):
     img = Image.open(filename).convert('RGB')
     if size is not None:

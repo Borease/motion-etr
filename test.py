@@ -1,11 +1,11 @@
-import debugpy
+# import debugpy
 
-# 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
-debugpy.listen(5678)
-print("Waiting for debugger attach")
-debugpy.wait_for_client()
-debugpy.breakpoint()
-print('break on this line')
+# # 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
+# debugpy.listen(5678)
+# print("Waiting for debugger attach")
+# debugpy.wait_for_client()
+# debugpy.breakpoint()
+# print('break on this line')
 
 import time
 import os
@@ -79,7 +79,7 @@ avgEPE_new = 0.0
 calculate_EPE = False
 counter = 0
 
-for i, data in enumerate(dataset):
+for i, data in enumerate(dataset): # enumerate each element (data) in dataset and its index (i)
 	if i >= opt.how_many:
 		break
 	counter = i+1
@@ -127,4 +127,4 @@ line = 'aveEPE= %f'%(avgEPE)
 write_txt(Record_txt,line)
 line = 'aveEPE_new= %f'%(avgEPE_new/counter)
 write_txt(Record_txt,line)
-# webpage.save()
+webpage.save()

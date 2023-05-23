@@ -1,3 +1,12 @@
+# import debugpy
+
+# # 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
+# debugpy.listen(5678)
+# print("Waiting for debugger attach")
+# debugpy.wait_for_client()
+# debugpy.breakpoint()
+# print('break on this line')
+
 import time
 from options.train_options import TrainOptions
 import os
@@ -81,23 +90,23 @@ def val(dataset,model,epoch,mode):
 	return ave_psnr
 
 if __name__ == '__main__':
-	freeze_support()
+	# freeze_support() # run this function if run in Windows
 
 	# python train.py --dataroot /.path_to_your_data --learn_residual --resize_or_crop crop --fineSize CROP_SIZE (we used 256)
 
 	opt = TrainOptions().parse()
 	# opt.dataroot = './datasets/train_xtran/'
 	opt.learn_residual = True
-	opt.resize_or_crop = "crop"
-	opt.fineSize = 256
+	#opt.resize_or_crop = "crop"
+	#opt.fineSize = 256
 	opt.gan_type = "none"
 	# opt.which_model_netG = "unet_256"
 
 	# default = 5000
-	opt.save_latest_freq = 100
+	#opt.save_latest_freq = 100
 
 	# default = 100
-	opt.print_freq = 20
+	#opt.print_freq = 20
 
 	data_loader = CreateDataLoader(opt)
 	model = create_model(opt)

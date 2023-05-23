@@ -22,6 +22,7 @@ def is_image_file(filename):
 
 
 def make_dataset(dir):
+    ''' This function returns the image file path'''
     images = []
     assert os.path.isdir(dir), '%s is not a valid directory' % dir
 

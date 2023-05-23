@@ -217,16 +217,22 @@ class Bluring_model_Q(BaseModel):
 
         return rgb
     
-    def visualize_offset_flow_test(self,output_dir, name):
+    def save_flow_magInCSV(self,output_dir, name):
         '''save the magnitude of flow into a csv, calculation same as visualize_offset_flow()'''
+        from PIL import Image
+        # offset = self.offset.cpu()
+        # offset = offset.detach().numpy()
         offset = self.get_current_offset()
         offset = np.squeeze(offset)
         C,H,W = offset.shape
         offset	= offset.reshape(self.n_offset,-1,H,W)
-        # order = np.array([0,6,5,4,3,2,1,8,9,10,11,12,13,14]) # zuhui's 1st order to make change of offset smoother by eye
-        order = np.array([1,2,3,4,5,6,0,7,8,9,10,11,12,13,14]) # zuhui's 2st order from visualize each_reblur
-        # order = np.array([0,7,6,5,4,3,2,14,8,9,10,11,12,13,1]) # yjzhang96 use this order 
-        # order = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]) # original order from network
+        # offset_xy = offset[:,:2,:,:] # offset_xy axis0: motion offset number; axis1: offset in x,y direction; axis3 and 4: width and height direction of image
+        # offset_xy = np.reshape(offset_xy, (-1,H,W)) # merge N motion offset in x,y direction into one axis
+        # offset = np.transpose(offset_xy,(1,2,0)) # rearrange motion offset in to last axis
+        # H,W,C = offset.shape
+        # offset = np.round(offset)
+        # vec = offset
+        order = np.array([0,6,5,4,3,2,1,8,9,10,11,12,13,14])
         offset_reorder = np.take(offset, order, axis=0)
         offset_xy = offset_reorder[:,:2,:,:] # offset_xy axis0: motion offset number; axis1: offset in x,y direction; axis3 and 4: width and height direction of image
         offset_xy = np.reshape(offset_xy, (-1,H,W)) # merge N motion offset in x,y direction into one axis
@@ -235,117 +241,94 @@ class Bluring_model_Q(BaseModel):
         offset = np.round(offset)
         vec = offset
         
-        # flow = - vec[:,:,0:2] + vec[:,:,-2:]
-        # mag,_ = cv2.cartToPolar(flow[...,1], flow[...,0],angleInDegrees=True)
-        # mag = mag.max() - mag / (mag.max() - mag.min())
-        # center_mag = mag[16-6:16+7,16-6:16+7] # export 13x13 pixel image centered at [16,16] in flow image
-        # center_img = cv2.normalize(center_mag, None, 0, 65535, cv2.NORM_MINMAX)
-        # vis_name = os.path.join(output_dir,name+'_centerflow.tiff')
-        # cv2.imwrite(vis_name,center_img)
+        # for i in range(14):
+        #     hsv = np.zeros((offset_reorder.shape[2],offset_reorder.shape[3],3),dtype=np.uint8)
+        #     hsv[...,2] = 255
+        #     mag,ang = cv2.cartToPolar(offset_reorder[i,1,:,:], offset_reorder[i,0,:,:],angleInDegrees=True)
+        #     hsv[...,1] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+        #     hsv[...,0] = ang / 2
+        #     rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+        #     vis_name = os.path.join(output_dir,name+'_offset%02d_magnitudesAngle.png'%i)
+        #     util.save_image(rgb, vis_name)
+            # print('Offset Index %d' % i)
+            # print('current flow max magitude is %.2f' % mag.max())
+            # print('current flow min magitude is %.2f' % mag.min())
+            # print('current flow mean magitude is %.2f' % mag.mean())
+            # print('current flow sum magitude is %.2f' % mag.sum())
 
-        if not os.path.exists(os.path.join(output_dir,'offsetReorderMag')):
-            os.mkdir(os.path.join(output_dir,'offsetReorderMag'))
-        if not os.path.exists(os.path.join(output_dir,'offsetReorderAngle')):
-            os.mkdir(os.path.join(output_dir,'offsetReorderAngle'))
-        for i in range(0,30,2):
-            mag,ang = cv2.cartToPolar(offset[...,i+1], offset[...,i],angleInDegrees=True)
-            # temp = np.zeros((offset_reorder.shape[2],offset_reorder.shape[3]),dtype=np.float32)
-            # output_img = np.stack((ang, mag, temp), axis=2)
-            vis_name = os.path.join(output_dir,'offsetReorderMag',name+'_offsetReorder%02d_mag.tiff'%i)
-            cv2.imwrite(vis_name,mag)
-            vis_name = os.path.join(output_dir,'offsetReorderAngle',name+'_offsetReorder%02d_angle.tiff'%i)
-            cv2.imwrite(vis_name,ang)
-            # hsv = np.zeros((offset_reorder.shape[2],offset_reorder.shape[3],3),dtype=np.uint8)
-            # hsv[...,2] = 255
-            # hsv[...,1] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
-            # hsv[...,0] = cv2.normalize(ang, None, 0, 255, cv2.NORM_MINMAX)
-            # # hsv[...,0] = ang / 2
-            # rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
-            # vis_name = os.path.join(output_dir,name+'_offsetReorder%02d_magnitudesAngle.jpg'%i)
-            # util.save_image(rgb, vis_name)
+        # offset_12 = np.stack((offset[0],offset[-1]),axis=0) 
+        # vec = offset        
+        # flow = vec[:,:,0:2] - vec[:,:,-2:]
+        # flow = np.sum(vec,axis=)/self.n_offset
 
-        if not os.path.exists(os.path.join(output_dir,'DiffFlow_mag')):
-            os.mkdir(os.path.join(output_dir,'DiffFlow_mag'))
-        if not os.path.exists(os.path.join(output_dir,'DiffFlow_ang')):
-            os.mkdir(os.path.join(output_dir,'DiffFlow_ang'))
-        for i in range(0,28,2):
-            flow = - vec[:,:,i:i+2] + vec[:,:,i+2:i+4]
-            mag,ang = cv2.cartToPolar(flow[...,1], flow[...,0],angleInDegrees=True)
-            # temp = np.zeros((offset_reorder.shape[2],offset_reorder.shape[3]),dtype=np.float32)
-            # output_img = np.stack((ang, mag, temp), axis=2)
-            vis_name = os.path.join(output_dir,'DiffFlow_mag',name+'_DiffFlow%02d_mag.tiff'%i)
-            cv2.imwrite(vis_name,mag)
-            vis_name = os.path.join(output_dir,'DiffFlow_ang',name+'_DiffFlow%02d_angle.tiff'%i)
-            cv2.imwrite(vis_name,ang)
-
-        if not os.path.exists(os.path.join(output_dir,'DiffFlowTofirst_mag')):
-            os.mkdir(os.path.join(output_dir,'DiffFlowTofirst_mag'))
-        if not os.path.exists(os.path.join(output_dir,'DiffFlowTofirst_ang')):
-            os.mkdir(os.path.join(output_dir,'DiffFlowTofirst_ang'))
-        for i in range(0,28,2):
-            flow = - vec[:,:,0:2] + vec[:,:,i+2:i+4]
-            mag,ang = cv2.cartToPolar(flow[...,1], flow[...,0],angleInDegrees=True)
-            # temp = np.zeros((offset_reorder.shape[2],offset_reorder.shape[3]),dtype=np.float32)
-            # output_img = np.stack((ang, mag, temp), axis=2)
-            vis_name = os.path.join(output_dir,'DiffFlowTofirst_mag',name+'_DiffFlowTofirst%02d_mag.tiff'%i)
-            cv2.imwrite(vis_name,mag)
-            vis_name = os.path.join(output_dir,'DiffFlowTofirst_ang',name+'_DiffFlowTofirst%02d_angle.tiff'%i)
-            cv2.imwrite(vis_name,ang)
+        # Define the slice indices for each concatenation
+        # slice_indices = [(0, 2), (2, 4), (4, 6), (6, 8), (8, 10), (10, 12), (12, 14), (14, 16), (16, 18), (18, 20), (20, 22), (22, 24), (24, 26), (26, 28)]
+        slice_indices = [(0, 2), (2, 4), (4, 6), (6, 8), (8, 10), (10, 12), (12, 14), (14, 16), (16, 18), (18, 20), (20, 22), (22, 24), (24, 26)]
+        # slice_indices = [(14, 16), (16, 18), (18, 20), (20, 22), (22, 24), (24, 26), (26, 28)]
+        # slice_indices1 = [ (2, 4), (4, 6), (6, 8), (8, 10), (10, 12)]
+        # slice_indices2 = [(14, 16), (16, 18), (18, 20), (20, 22), (22, 24), (24, 26), (26, 28)]
+        # Iterate over the slice indices and concatenate along the third axis
+        result = np.zeros((32, 32, 2))  # Initialize an empty tensor for concatenation results
+        i = 0
+        for start, end in slice_indices:
+            slice_result = - vec[:, :, 0:2] + vec[:, :, start+2:end+2]
+            mag,ang = cv2.cartToPolar(slice_result[...,1], slice_result[...,0],angleInDegrees=True)
+            print('current flow mean magitude in slice %d is %.2f' % (i,mag.mean()))
+            hsv = np.zeros((mag.shape[0],mag.shape[1],3),dtype=np.uint8)
+            hsv[...,2] = 255
+            hsv[...,1] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+            # if i == 7:
+            #     print(mag)
+            #     print(hsv[...,1])
+            #     print(hsv[...,1].sum())
+            hsv[...,0] = ang / 2
+            # print('current v in hsv is %.2f' % hsv[...,1].mean())
+            result = result + slice_result
+            rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+            vis_name = os.path.join(output_dir,name+'_flowDiff%02d_magnitudesAngle.png'%i)
+            util.save_image(rgb, vis_name)
+            i = i+1
+        mag,ang = cv2.cartToPolar(result[...,1], result[...,0],angleInDegrees=True)
+        # print('current flow max magitude is %.2f' % mag.max())
+        # print('current flow min magitude is %.2f' % mag.min())
+        # print('current flow mean magitude is %.2f' % mag.mean())
+        # print('current flow sum magitude is %.2f' % mag.sum())
+        hsv = np.zeros((mag.shape[0],mag.shape[1],3),dtype=np.uint8)
+        hsv[...,2] = 255
+        hsv[...,1] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+        hsv[...,0] = ang / 2
+        rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+        vis_name = os.path.join(output_dir,name+'_flowSumDiff_magnitudesAngle.png')
+        util.save_image(rgb, vis_name)
+            # result = result + hsv[...,1].mean()
+        # print('current sum mean_v in hsv from all slices is %.2f' % result)
         
-        # # slice_indices = [(0, 2), (2, 4), (4, 6), (6, 8), (8, 10), (10, 12), (12, 14), (14, 16), (16, 18), (18, 20), (20, 22), (22, 24), (24, 26)]
-        # cumulate_mag = np.zeros((32, 32))
-        # for i in range(0,26,2):
-        #     slice_result = - vec[:, :, 0:2] + vec[:, :, i+2:i+4]
-        #     mag,ang = cv2.cartToPolar(slice_result[...,1], slice_result[...,0],angleInDegrees=True)
-        #     hsv = np.zeros((offset_reorder.shape[2],offset_reorder.shape[3],3),dtype=np.uint8)
-        #     hsv[...,2] = 255
-        #     hsv[...,1] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
-        #     hsv[...,0] = ang / 2
-        #     rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
-        #     vis_name = os.path.join(output_dir,name+'_DiffFlowtoFirst%02d_magnitudesAngle.png'%i)
-        #     util.save_image(rgb, vis_name)
-         
-        # slice_result = vec[:, :, 0:2]
-        # for i in range(0,26,2):
-        #     slice_result = slice_result + vec[:, :, i+2:i+4]
-        #     mag,ang = cv2.cartToPolar(slice_result[...,1], slice_result[...,0],angleInDegrees=True)
-        #     print(mag.max())
-        #     hsv = np.zeros((offset_reorder.shape[2],offset_reorder.shape[3],3),dtype=np.uint8)
-        #     hsv[...,2] = 255
-        #     hsv[...,1] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
-        #     hsv[...,0] = ang / 2
-        #     rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
-        #     vis_name = os.path.join(output_dir,name+'_AccumOffset%02d_magnitudesAngle.png'%i)
-        #     util.save_image(rgb, vis_name)
+        # result1 = np.zeros((32, 32, 2))  # Initialize an empty tensor for concatenation results
+        # for start, end in slice_indices1:
+        #     slice_result = - vec[:, :, start:end] + vec[:, :, start+2:end+2]
+        #     result = result + slice_result
+        # mag1,_ = cv2.cartToPolar(result1[...,1], result1[...,0],angleInDegrees=True)
+        # print('current flow max1 magitude is %.2f' % mag1.sum())
+        # result2 = np.zeros((32, 32, 2))  # Initialize an empty tensor for concatenation results
+        # for start, end in slice_indices2:
+        #     slice_result = - vec[:, :, start:end] + vec[:, :, start+2:end+2]
+        #     result = result + slice_result
 
-        # cumulate_mag = np.zeros((offset_reorder.shape[2], offset_reorder.shape[3]))
-        # for i in range(0,26,2):
-        #     mag,_ = cv2.cartToPolar(vec[...,i+1], vec[...,i],angleInDegrees=True)
-        #     cumulate_mag = cumulate_mag + mag
-        # max_cumulate_mag = cumulate_mag.max()
-        # cumulate_mag = np.zeros((offset_reorder.shape[2], offset_reorder.shape[3]))
-        # for i in range(0,26,2):
-        #     mag,_ = cv2.cartToPolar(vec[...,i+1], vec[...,i],angleInDegrees=True)
-        #     cumulate_mag = cumulate_mag + mag
-        #     hsv = np.zeros((offset_reorder.shape[2], offset_reorder.shape[3],3),dtype=np.uint8)
-        #     hsv[...,2] = 255
-        #     norm_cumulate_mag = cv2.convertScaleAbs(cumulate_mag,None,alpha=255/max_cumulate_mag)
-        #     hsv[...,1] = np.floor(norm_cumulate_mag)
-        #     hsv[...,0] = ang / 2
-        #     rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
-        #     vis_name = os.path.join(output_dir,name+'_AccumOffset%02d_magnitudesAngle.png'%i)
-        #     util.save_image(rgb, vis_name)
-
-        # '''我觉得中间小一些区域的sum of mag 或者 sum of sum是体现了点的运动性的。 
-        # 你选取不运动以及明显运动的点计算比较一下，看与直观的运动性的相关性。'''
-        # # slice_indices = [(0, 2), (2, 4), (4, 6), (6, 8), (8, 10), (10, 12), (12, 14), (14, 16), (16, 18), (18, 20), (20, 22), (22, 24), (24, 26)]
-        # cumulate_mag = np.zeros((32, 32))
-        # for i in range(0,26,2):
-        #     # slice_result = - vec[:, :, 0:2] + vec[:, :, start+2:end+2]
-        #     mag,_ = cv2.cartToPolar(vec[...,i+1], vec[...,i],angleInDegrees=True)
-        #     cumulate_mag = cumulate_mag + mag
-        # crop_cumulate_mag = cumulate_mag[16-6:16+7,16-6:16+7]
-        # print('current crop_cumulate_mag is %.2f' % crop_cumulate_mag.sum())
+        # flow = result
+        flow = - vec[:,:,0:2] + vec[:,:,-2:]
+        mag,ang = cv2.cartToPolar(flow[...,1], flow[...,0],angleInDegrees=True)
+        mag = mag.max() - mag / (mag.max() - mag.min())
+        hsv = np.zeros((mag.shape[0],mag.shape[1],3),dtype=np.uint8)
+        hsv[...,2] = 255
+        hsv[...,1] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+        hsv[...,0] = ang / 2
+        rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+        vis_name = os.path.join(output_dir,name+'_flowDiffOriginReciprocal_magnitudesAngle.png')
+        util.save_image(rgb, vis_name)
+        print('current flow max magitude is %.2f' % mag.max())
+        print('current flow min magitude is %.2f' % mag.min())
+        print('current flow mean magitude is %.2f' % mag.mean())
+        print('current flow sum magitude is %.2f' % mag.sum())
         
         # # save mag to CSV file
         # import csv
